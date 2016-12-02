@@ -5,6 +5,8 @@ use warnings;
 our $VERSION = '1.01';
 
 require ML::TensorFlow;
+use FFI::Platypus;
+use FFI::CheckLib ();
 
 use Exporter 'import';
 our @EXPORT_OK;
@@ -63,9 +65,6 @@ BEGIN: {
 
 use constant (TF_DataType_Enum => \%TF_DataType_Enum);
 use constant (TF_Code_Enum => \%TF_Code_Enum);
-
-use FFI::Platypus;
-use FFI::CheckLib ();
 
 # just some named types for the FFI to make it more readable
 my $TF_Status_Ptr         = "opaque";

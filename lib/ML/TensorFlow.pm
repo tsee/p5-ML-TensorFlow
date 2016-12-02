@@ -29,9 +29,6 @@ use constant {
 };
 push @EXPORT_OK, qw(Status SessionOptions Session Tensor);
 
-
-use FFI::Platypus;
-
 package ML::TensorFlow::Status {
   sub new {
     my ($class) = @_;
