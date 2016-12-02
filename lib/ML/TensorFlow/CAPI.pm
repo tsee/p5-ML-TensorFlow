@@ -73,6 +73,7 @@ my $TF_SessionOptions_Ptr = "opaque";
 my $TF_Session_Ptr        = "opaque";
 my $TF_Buffer_Ptr         = "opaque";
 my $TF_Graph_Ptr          = "opaque";
+my $TF_Library_Ptr        = "opaque";
 
 my $TF_Code_Enum_t     = "int";
 my $TF_DataType_Enum_t = "int";
@@ -184,6 +185,14 @@ $ffi->attach( 'TF_DeleteSession',       [$TF_Session_Ptr, $TF_Status_Ptr] => 'vo
 #                           TF_Status*);
 
 # There's also TF_SessionPRunSetup,TF_SessionPRun, which is marked as experimental
+
+# TF_Library API
+$ffi->attach( "TF_LoadLibrary",         ['string', $TF_Status_Ptr] => $TF_Library_Ptr );
+# TODO: returning straight up buffer (not ptr)
+#$ffi->attach( "TF_GetOpList",           [$TF_Library_Ptr] => $TF_Buffer );
+$ffi->attach( "TF_DeleteLibraryHandle", [$TF_Library_Ptr] => 'void' );
+$ffi->attach( "TF_GetAllOpList",        [] => $TF_Buffer_Ptr );
+
 
 1;
 
