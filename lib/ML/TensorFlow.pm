@@ -16,11 +16,11 @@ use Exporter 'import';
 our @EXPORT_OK;
 our %EXPORT_TAGS = (all => \@EXPORT_OK);
 
-my %TF_Code;
-my %TF_DataType;
+my %TF_Code_Enum;
+my %TF_DataType_Enum;
 
 BEGIN: {
-  %TF_DataType = (
+  %TF_DataType_Enum = (
     TF_FLOAT => 1,
     TF_DOUBLE => 2,
     TF_INT32 => 3,  # Int32 tensors are always in 'host' memory.
@@ -44,7 +44,7 @@ BEGIN: {
     TF_RESOURCE => 20,
   );
 
-  %TF_Code = (
+  %TF_Code_Enum = (
     TF_OK => 0,
     TF_CANCELLED => 1,
     TF_UNKNOWN => 2,
@@ -64,11 +64,11 @@ BEGIN: {
     TF_DATA_LOSS => 15,
   );
 
-  push @EXPORT_OK, qw(TF_DataType TF_Code);
+  push @EXPORT_OK, qw(TF_DataType_Enum TF_Code_Enum);
 } # end BEGIN
 
-use constant (TF_DataType => \%TF_DataType);
-use constant (TF_Code => \%TF_DataType);
+use constant (TF_DataType_Enum => \%TF_DataType_Enum);
+use constant (TF_Code_Enum => \%TF_Code_Enum);
 use constant {
   Status         => "ML::TensorFlow::Status",
   Session        => "ML::TensorFlow::Session",
@@ -84,37 +84,37 @@ use FFI::CheckLib (); # qw( find_lib_or_exit );
 package ML::TensorFlow::CAPI {
 
   # just some named types for the FFI to make it more readable
-  my $TF_Status         = "opaque";
-  my $TF_Tensor         = "opaque";
-  my $TF_SessionOptions = "opaque";
-  my $TF_Session        = "opaque";
+  my $TF_Status_Ptr         = "opaque";
+  my $TF_Tensor_Ptr         = "opaque";
+  my $TF_Session_PtrOptions_Ptr = "opaque";
+  my $TF_Session_Ptr        = "opaque";
 
-  my $TF_Code_t = "int";
-  my $TF_DataType_t = "int";
+  my $TF_Code_Enum_t = "int";
+  my $TF_DataType_Enum_t = "int";
 
   my $ffi = FFI::Platypus->new;
   $ffi->lib(FFI::CheckLib::find_lib_or_exit(lib => 'tensorflow'));
 
   # Status API
-  $ffi->attach( "TF_NewStatus", [] => $TF_Status );
-  $ffi->attach( "TF_DeleteStatus", [$TF_Status] => "void" );
-  $ffi->attach( "TF_SetStatus", [$TF_Status, $TF_Code_t, "string"] => "void" );
-  $ffi->attach( "TF_GetCode", [$TF_Status] => $TF_Code_t );
-  $ffi->attach( "TF_Message", [$TF_Status] => "string" );
+  $ffi->attach( "TF_NewStatus", [] => $TF_Status_Ptr );
+  $ffi->attach( "TF_DeleteStatus", [$TF_Status_Ptr] => "void" );
+  $ffi->attach( "TF_SetStatus", [$TF_Status_Ptr, $TF_Code_Enum_t, "string"] => "void" );
+  $ffi->attach( "TF_GetCode", [$TF_Status_Ptr] => $TF_Code_Enum_t );
+  $ffi->attach( "TF_Message", [$TF_Status_Ptr] => "string" );
 
   # SessionOptions API
-  $ffi->attach( 'TF_NewSessionOptions', [] => $TF_SessionOptions );
-  $ffi->attach( 'TF_SetTarget', [$TF_SessionOptions, 'string'] => 'void' );
-  #$ffi->attach( 'TF_SetConfig', [$TF_SessionOptions, 'void*', 'size_t', $TF_Status] => 'void' );
-  $ffi->attach( 'TF_SetConfig', [$TF_SessionOptions, 'string', 'size_t', $TF_Status] => 'void' );
-  $ffi->attach( 'TF_DeleteSessionOptions', [$TF_SessionOptions] => 'void' );
+  $ffi->attach( 'TF_NewSessionOptions', [] => $TF_Session_PtrOptions_Ptr );
+  $ffi->attach( 'TF_SetTarget', [$TF_Session_PtrOptions_Ptr, 'string'] => 'void' );
+  #$ffi->attach( 'TF_SetConfig', [$TF_Session_PtrOptions_Ptr, 'void*', 'size_t', $TF_Status_Ptr] => 'void' );
+  $ffi->attach( 'TF_SetConfig', [$TF_Session_PtrOptions_Ptr, 'string', 'size_t', $TF_Status_Ptr] => 'void' );
+  $ffi->attach( 'TF_DeleteSessionOptions', [$TF_Session_PtrOptions_Ptr] => 'void' );
 
   # Session API
-  $ffi->attach( 'TF_NewSession', [$TF_SessionOptions, $TF_Status] => $TF_Session );
-  $ffi->attach( 'TF_CloseSession', [$TF_Session, $TF_Status] => 'void' );
-  $ffi->attach( 'TF_DeleteSession', [$TF_Session, $TF_Status] => 'void' );
-  #$ffi->attach( 'TF_ExtendGraph', [$TF_Session, 'void*', 'size_t', $TF_Status] => 'void' );
-  #$ffi->attach( 'TF_ExtendGraph', [$TF_Session, 'string', 'size_t', $TF_Status] => 'void' );
+  $ffi->attach( 'TF_NewSession', [$TF_Session_PtrOptions_Ptr, $TF_Status_Ptr] => $TF_Session_Ptr );
+  $ffi->attach( 'TF_CloseSession', [$TF_Session_Ptr, $TF_Status_Ptr] => 'void' );
+  $ffi->attach( 'TF_DeleteSession', [$TF_Session_Ptr, $TF_Status_Ptr] => 'void' );
+  #$ffi->attach( 'TF_ExtendGraph', [$TF_Session_Ptr, 'void*', 'size_t', $TF_Status_Ptr] => 'void' );
+  #$ffi->attach( 'TF_ExtendGraph', [$TF_Session_Ptr, 'string', 'size_t', $TF_Status_Ptr] => 'void' );
 
   # Tensor API
   #TF_DataType, const int64_t* dims, int num_dims,
@@ -128,22 +128,22 @@ package ML::TensorFlow::CAPI {
   $ffi->attach(
     'TF_NewTensor',
     [
-      $TF_DataType_t,
+      $TF_DataType_Enum_t,
       'sint64[]', 'int', # dim sizes, ndims
       'opaque', 'size_t', # data, data len in bytes
       'tensor_dealloc_closure_t', 'opaque', # deallocator callback, deallocator arg
     ],
-    $TF_Tensor
+    $TF_Tensor_Ptr
   );
 
-  $ffi->attach( 'TF_DeleteTensor', [$TF_Tensor] => 'void' );
-  $ffi->attach( 'TF_TensorType', [$TF_Tensor] => $TF_DataType_t );
-  $ffi->attach( 'TF_NumDims', [$TF_Tensor, 'int'] => 'int' );
-  $ffi->attach( 'TF_Dim', [$TF_Tensor] => 'sint64' );
-  $ffi->attach( 'TF_TensorByteSize', [$TF_Tensor] => 'size_t' );
+  $ffi->attach( 'TF_DeleteTensor', [$TF_Tensor_Ptr] => 'void' );
+  $ffi->attach( 'TF_TensorType', [$TF_Tensor_Ptr] => $TF_DataType_Enum_t );
+  $ffi->attach( 'TF_NumDims', [$TF_Tensor_Ptr, 'int'] => 'int' );
+  $ffi->attach( 'TF_Dim', [$TF_Tensor_Ptr] => 'sint64' );
+  $ffi->attach( 'TF_TensorByteSize', [$TF_Tensor_Ptr] => 'size_t' );
 
   # warning: no encapsulation...
-  $ffi->attach( 'TF_TensorData', [$TF_Tensor] => 'opaque');
+  $ffi->attach( 'TF_TensorData', [$TF_Tensor_Ptr] => 'opaque');
 
 };
 
@@ -164,7 +164,7 @@ package ML::TensorFlow::Status {
   sub is_ok { 
     my ($self) = @_;
     my $code = $self->get_code;
-    return($code == TF_Code()->{TF_OK});
+    return($code == TF_Code_Enum()->{TF_OK});
   }
 
   sub set_status {
@@ -219,7 +219,7 @@ package ML::TensorFlow::Session {
   sub new {
     my ($class, $graph, $sessopt) = @_;
 
-    if (!Scalar::Util::blessed($graph) || !$sessopt->isa("ML::TensorFlow::Graph")) {
+    if (!Scalar::Util::blessed($graph) || !$graph->isa("ML::TensorFlow::Graph")) {
       Carp::croak("Need a Graph object");
     }
 
@@ -251,7 +251,7 @@ package ML::TensorFlow::Session {
     return $status;
   }
 
-  #$ffi->attach( 'TF_ExtendGraph', [$TF_Session, 'void*', 'size_t', $TF_Status] => 'void' );
+  #$ffi->attach( 'TF_ExtendGraph', [$TF_Session_Ptr, 'void*', 'size_t', $TF_Status_Ptr] => 'void' );
   #sub extend_graph {
   #  my ($self, $binary_data) = @_;
   #  my $status = ML::TensorFlow::Status->new;
