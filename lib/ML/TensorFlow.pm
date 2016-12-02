@@ -34,7 +34,8 @@ package ML::TensorFlow::Status {
     my ($class) = @_;
     my $s = ML::TensorFlow::CAPI::TF_NewStatus();
     my $self = bless(\$s => $class);
-    $self->set_status(0, "");
+    # The following is not necessary since it's the default (but not documented as such?)
+    #$self->set_status(TF_Code_Enum()->{TF_OK}, "");
     return $self;
   }
 
