@@ -66,6 +66,8 @@ package ML::TensorFlow::Status {
   }
 }; # end Status
 
+
+
 package ML::TensorFlow::SessionOptions {
   sub new {
     my ($class) = @_;
@@ -98,6 +100,7 @@ package ML::TensorFlow::SessionOptions {
 }; # end SessionOptions
 
 
+
 package ML::TensorFlow::Session {
   sub new {
     my ($class, $graph, $sessopt) = @_;
@@ -122,7 +125,7 @@ package ML::TensorFlow::Session {
 
   sub DESTROY {
     my ($self) = @_;
-    my $status = ML::TensorFlow::Status->new; # Mocking up status
+    my $status = ML::TensorFlow::Status->new; # Mocking up status FIXME, what if that's not TF_OK?
     ML::TensorFlow::CAPI::TF_DeleteSession($$self, $$status);
     return;
   }
@@ -134,14 +137,8 @@ package ML::TensorFlow::Session {
     return $status;
   }
 
-  #$ffi->attach( 'TF_ExtendGraph', [$TF_Session_Ptr, 'void*', 'size_t', $TF_Status_Ptr] => 'void' );
-  #sub extend_graph {
-  #  my ($self, $binary_data) = @_;
-  #  my $status = ML::TensorFlow::Status->new;
-  #  ML::TensorFlow::CAPI::TF_ExtendGraph($$self, $binary_data, bytes::length($binary_data), $$status);
-  #  return $status;
-  #}
 }; # end Session
+
 
 
 package ML::TensorFlow::Tensor {
