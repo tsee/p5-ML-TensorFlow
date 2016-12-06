@@ -7,6 +7,7 @@ our $VERSION = '1.01';
 require ML::TensorFlow;
 use FFI::Platypus;
 use FFI::CheckLib ();
+use FFI::Platypus::Record;
 
 use Exporter 'import';
 our @EXPORT_OK;
@@ -66,6 +67,13 @@ BEGIN: {
 use constant (TF_DataType_Enum => \%TF_DataType_Enum);
 use constant (TF_Code_Enum => \%TF_Code_Enum);
 
+
+# Global Init
+our $FFI = FFI::Platypus->new;
+$FFI->lib(FFI::CheckLib::find_lib_or_exit(lib => 'tensorflow'));
+
+
+
 # just some named types for the FFI to make it more readable
 my $TF_Status_Ptr         = "opaque";
 my $TF_Tensor_Ptr         = "opaque";
@@ -78,26 +86,25 @@ my $TF_Library_Ptr        = "opaque";
 my $TF_Code_Enum_t     = "int";
 my $TF_DataType_Enum_t = "int";
 
-my $ffi = FFI::Platypus->new;
-$ffi->lib(FFI::CheckLib::find_lib_or_exit(lib => 'tensorflow'));
+use constant TF_BUFFER_SIZE => ML::TensorFlow::Buffer::_get_struct_size();
+my $TF_Buffer_Opaque = "record(" . TF_BUFFER_SIZE . ")";
 
 # Status API
-$ffi->attach( "TF_NewStatus",           [] => $TF_Status_Ptr );
-$ffi->attach( "TF_DeleteStatus",        [$TF_Status_Ptr] => "void" );
-$ffi->attach( "TF_SetStatus",           [$TF_Status_Ptr, $TF_Code_Enum_t, "string"] => "void" );
-$ffi->attach( "TF_GetCode",             [$TF_Status_Ptr] => $TF_Code_Enum_t );
-$ffi->attach( "TF_Message",             [$TF_Status_Ptr] => "string" );
+$FFI->attach( "TF_NewStatus",           [] => $TF_Status_Ptr );
+$FFI->attach( "TF_DeleteStatus",        [$TF_Status_Ptr] => "void" );
+$FFI->attach( "TF_SetStatus",           [$TF_Status_Ptr, $TF_Code_Enum_t, "string"] => "void" );
+$FFI->attach( "TF_GetCode",             [$TF_Status_Ptr] => $TF_Code_Enum_t );
+$FFI->attach( "TF_Message",             [$TF_Status_Ptr] => "string" );
 
 
 # Buffer API
-$ffi->attach( "TF_NewBufferFromString", ['string', 'size_t'] => $TF_Buffer_Ptr );
-$ffi->attach( "TF_NewBuffer",           [] => $TF_Buffer_Ptr );
-$ffi->attach( "TF_DeleteBuffer",        [$TF_Buffer_Ptr] => 'void' );
+# See TensorFLow.xs
+#$FFI->attach( "TF_NewBufferFromString", ['string', 'size_t'] => $TF_Buffer_Ptr );
+#$FFI->attach( "TF_NewBuffer",           [] => $TF_Buffer_Ptr );
+#$FFI->attach( "TF_DeleteBuffer",        [$TF_Buffer_Ptr] => 'void' );
 
 # WTF:?
 #extern TF_Buffer TF_GetBuffer(TF_Buffer* buffer);
-
-# TODO: Implement access to TF_Buffer stuct members
 #typedef struct {
 #  const void* data;
 #  size_t length;
@@ -113,9 +120,9 @@ $ffi->attach( "TF_DeleteBuffer",        [$TF_Buffer_Ptr] => 'void' );
 #                             void* deallocator_arg);
 #exports.TF_Destructor = ffi.Callback('void', ['void*', 'size_t', 'void*'], function(data, len, arg) {});
 
-$ffi->type('(opaque,size_t,opaque)->void' => 'tensor_dealloc_closure_t');
+$FFI->type('(opaque,size_t,opaque)->void' => 'tensor_dealloc_closure_t');
 
-$ffi->attach(
+$FFI->attach(
   'TF_NewTensor',
   [
     $TF_DataType_Enum_t,
@@ -126,15 +133,15 @@ $ffi->attach(
   $TF_Tensor_Ptr
 );
 
-$ffi->attach( 'TF_AllocateTensor',      [$TF_DataType_Enum_t, 'sint64[]', 'int', 'size_t'] => $TF_Tensor_Ptr );
-$ffi->attach( 'TF_DeleteTensor',        [$TF_Tensor_Ptr] => 'void' );
-$ffi->attach( 'TF_TensorType',          [$TF_Tensor_Ptr] => $TF_DataType_Enum_t );
-$ffi->attach( 'TF_NumDims',             [$TF_Tensor_Ptr, 'int'] => 'int' );
-$ffi->attach( 'TF_Dim',                 [$TF_Tensor_Ptr] => 'sint64' );
-$ffi->attach( 'TF_TensorByteSize',      [$TF_Tensor_Ptr] => 'size_t' );
+$FFI->attach( 'TF_AllocateTensor',      [$TF_DataType_Enum_t, 'sint64[]', 'int', 'size_t'] => $TF_Tensor_Ptr );
+$FFI->attach( 'TF_DeleteTensor',        [$TF_Tensor_Ptr] => 'void' );
+$FFI->attach( 'TF_TensorType',          [$TF_Tensor_Ptr] => $TF_DataType_Enum_t );
+$FFI->attach( 'TF_NumDims',             [$TF_Tensor_Ptr, 'int'] => 'int' );
+$FFI->attach( 'TF_Dim',                 [$TF_Tensor_Ptr] => 'sint64' );
+$FFI->attach( 'TF_TensorByteSize',      [$TF_Tensor_Ptr] => 'size_t' );
 
 # warning: no encapsulation whatsoever to this one...
-$ffi->attach( 'TF_TensorData',          [$TF_Tensor_Ptr] => 'opaque');
+$FFI->attach( 'TF_TensorData',          [$TF_Tensor_Ptr] => 'opaque');
 
 # String-encode/decode stuff
 # TODO
@@ -146,24 +153,24 @@ $ffi->attach( 'TF_TensorData',          [$TF_Tensor_Ptr] => 'opaque');
 
 
 # SessionOptions API
-$ffi->attach( 'TF_NewSessionOptions',   [] => $TF_SessionOptions_Ptr );
-$ffi->attach( 'TF_SetTarget',           [$TF_SessionOptions_Ptr, 'string'] => 'void' );
-#$ffi->attach( 'TF_SetConfig',           [$TF_SessionOptions_Ptr, 'void*', 'size_t', $TF_Status_Ptr] => 'void' );
-$ffi->attach( 'TF_SetConfig',           [$TF_SessionOptions_Ptr, 'string', 'size_t', $TF_Status_Ptr] => 'void' );
-$ffi->attach( 'TF_DeleteSessionOptions', [$TF_SessionOptions_Ptr] => 'void' );
+$FFI->attach( 'TF_NewSessionOptions',   [] => $TF_SessionOptions_Ptr );
+$FFI->attach( 'TF_SetTarget',           [$TF_SessionOptions_Ptr, 'string'] => 'void' );
+#$FFI->attach( 'TF_SetConfig',           [$TF_SessionOptions_Ptr, 'void*', 'size_t', $TF_Status_Ptr] => 'void' );
+$FFI->attach( 'TF_SetConfig',           [$TF_SessionOptions_Ptr, 'string', 'size_t', $TF_Status_Ptr] => 'void' );
+$FFI->attach( 'TF_DeleteSessionOptions', [$TF_SessionOptions_Ptr] => 'void' );
 
 
 # Graph API
-$ffi->attach( 'TF_NewGraph',             [] => $TF_Graph_Ptr);
-$ffi->attach( 'TF_DeleteGraph',          [$TF_Graph_Ptr] => 'void');
+$FFI->attach( 'TF_NewGraph',             [] => $TF_Graph_Ptr);
+$FFI->attach( 'TF_DeleteGraph',          [$TF_Graph_Ptr] => 'void');
 
 # TODO the whole graph/operation shebang
 
 
 # Session API
-$ffi->attach( 'TF_NewSession',          [$TF_Graph_Ptr, $TF_SessionOptions_Ptr, $TF_Status_Ptr] => $TF_Session_Ptr );
-$ffi->attach( 'TF_CloseSession',        [$TF_Session_Ptr, $TF_Status_Ptr] => 'void' );
-$ffi->attach( 'TF_DeleteSession',       [$TF_Session_Ptr, $TF_Status_Ptr] => 'void' );
+$FFI->attach( 'TF_NewSession',          [$TF_Graph_Ptr, $TF_SessionOptions_Ptr, $TF_Status_Ptr] => $TF_Session_Ptr );
+$FFI->attach( 'TF_CloseSession',        [$TF_Session_Ptr, $TF_Status_Ptr] => 'void' );
+$FFI->attach( 'TF_DeleteSession',       [$TF_Session_Ptr, $TF_Status_Ptr] => 'void' );
 
 
 # Running things API
@@ -187,11 +194,11 @@ $ffi->attach( 'TF_DeleteSession',       [$TF_Session_Ptr, $TF_Status_Ptr] => 'vo
 # There's also TF_SessionPRunSetup,TF_SessionPRun, which is marked as experimental
 
 # TF_Library API
-$ffi->attach( "TF_LoadLibrary",         ['string', $TF_Status_Ptr] => $TF_Library_Ptr );
-# TODO: returning straight up buffer (not ptr)
-#$ffi->attach( "TF_GetOpList",           [$TF_Library_Ptr] => $TF_Buffer );
-$ffi->attach( "TF_DeleteLibraryHandle", [$TF_Library_Ptr] => 'void' );
-$ffi->attach( "TF_GetAllOpList",        [] => $TF_Buffer_Ptr );
+$FFI->attach( "TF_LoadLibrary",         ['string', $TF_Status_Ptr] => $TF_Library_Ptr );
+# returning straight up buffer (not ptr)
+$FFI->attach( "TF_GetOpList",           [$TF_Library_Ptr] => $TF_Buffer_Opaque );
+$FFI->attach( "TF_DeleteLibraryHandle", [$TF_Library_Ptr] => 'void' );
+$FFI->attach( "TF_GetAllOpList",        [] => $TF_Buffer_Ptr );
 
 
 1;
