@@ -23,13 +23,14 @@ BEGIN {
 our %EXPORT_TAGS = (all => \@EXPORT_OK);
 
 use constant {
-  Status         => "ML::TensorFlow::Status",
-  Session        => "ML::TensorFlow::Session",
-  SessionOptions => "ML::TensorFlow::SessionOptions",
-  Tensor         => "ML::TensorFlow::Tensor",
-  Buffer         => "ML::TensorFlow::Buffer",
+  Status         => __PACKAGE__ . "::Status",
+  Session        => __PACKAGE__ . "::Session",
+  SessionOptions => __PACKAGE__ . "::SessionOptions",
+  Tensor         => __PACKAGE__ . "::Tensor",
+  Buffer         => __PACKAGE__ . "::Buffer",
+  Graph          => __PACKAGE__ . "::Graph",
 };
-push @EXPORT_OK, qw(Status SessionOptions Session Tensor Buffer);
+push @EXPORT_OK, qw(Status SessionOptions Session Tensor Buffer Graph);
 
 package ML::TensorFlow::Status {
   sub new {
@@ -37,7 +38,7 @@ package ML::TensorFlow::Status {
     my $s = ML::TensorFlow::CAPI::TF_NewStatus();
     my $self = bless(\$s => $class);
     # The following is not necessary since it's the default (but not documented as such?)
-    #$self->set_status(TF_Code_Enum()->{TF_OK}, "");
+    #$self->set_status(ML::TensorFlow::CAPI::TF_Code_Enum()->{TF_OK}, "");
     return $self;
   }
 
@@ -49,7 +50,7 @@ package ML::TensorFlow::Status {
   sub is_ok { 
     my ($self) = @_;
     my $code = $self->get_code;
-    return($code == TF_Code_Enum()->{TF_OK});
+    return($code == ML::TensorFlow::CAPI::TF_Code_Enum()->{TF_OK});
   }
 
   sub set_status {
@@ -101,6 +102,19 @@ package ML::TensorFlow::SessionOptions {
 
 }; # end SessionOptions
 
+
+package ML::TensorFlow::Graph {
+  sub new {
+    my ($class) = @_;
+    my $g = ML::TensorFlow::CAPI::TF_NewGraph();
+    return bless(\$g => $class);
+  }
+
+  sub DESTROY {
+    my ($self) = @_;
+    ML::TensorFlow::CAPI::TF_DeleteGraph($$self);
+  }
+}; # end Graph
 
 
 package ML::TensorFlow::Session {
