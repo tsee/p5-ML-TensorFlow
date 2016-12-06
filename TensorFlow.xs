@@ -32,8 +32,14 @@ extern void TF_DeleteBuffer(TF_Buffer*);
 
 /* end c_api.h portion */
 
-MODULE = ML::TensorFlow		PACKAGE = ML::TensorFlow
+MODULE = ML::TensorFlow		PACKAGE = ML::TensorFlow::CAPI
 PROTOTYPES: DISABLE
+
+SV *
+_make_perl_string_copy_from_opaque_string(SV *s_ptr, size_t len)
+  CODE:
+    RETVAL = newSVpvn((char *)SvIV(s_ptr), len);
+  OUTPUT: RETVAL
 
 MODULE = ML::TensorFlow		PACKAGE = ML::TensorFlow::Buffer
 PROTOTYPES: DISABLE
@@ -98,4 +104,5 @@ set_data(self, data)
     str = SvPVbyte(data, len);
     self->length = (size_t)len;
     self->data = (const void *)str;
+
 

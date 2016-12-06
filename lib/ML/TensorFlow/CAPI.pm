@@ -120,7 +120,7 @@ $FFI->attach( "TF_Message",             [$TF_Status_Ptr] => "string" );
 #                             void* deallocator_arg);
 #exports.TF_Destructor = ffi.Callback('void', ['void*', 'size_t', 'void*'], function(data, len, arg) {});
 
-$FFI->type('(opaque,size_t,opaque)->void' => 'tensor_dealloc_closure_t');
+$FFI->type('(string,size_t,opaque)->void' => 'tensor_dealloc_closure_t');
 
 $FFI->attach(
   'TF_NewTensor',
@@ -136,8 +136,8 @@ $FFI->attach(
 $FFI->attach( 'TF_AllocateTensor',      [$TF_DataType_Enum_t, 'sint64[]', 'int', 'size_t'] => $TF_Tensor_Ptr );
 $FFI->attach( 'TF_DeleteTensor',        [$TF_Tensor_Ptr] => 'void' );
 $FFI->attach( 'TF_TensorType',          [$TF_Tensor_Ptr] => $TF_DataType_Enum_t );
-$FFI->attach( 'TF_NumDims',             [$TF_Tensor_Ptr, 'int'] => 'int' );
-$FFI->attach( 'TF_Dim',                 [$TF_Tensor_Ptr] => 'sint64' );
+$FFI->attach( 'TF_NumDims',             [$TF_Tensor_Ptr] => 'int' );
+$FFI->attach( 'TF_Dim',                 [$TF_Tensor_Ptr, 'int'] => 'sint64' );
 $FFI->attach( 'TF_TensorByteSize',      [$TF_Tensor_Ptr] => 'size_t' );
 
 # warning: no encapsulation whatsoever to this one...

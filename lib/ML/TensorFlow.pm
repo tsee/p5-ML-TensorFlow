@@ -160,6 +160,9 @@ package ML::TensorFlow::Session {
 package ML::TensorFlow::Tensor {
 
   my $dealloc_closure = sub {}; # memory managed by Perl (?)
+  my $ffi_closure = $ML::TensorFlow::CAPI::FFI->closure($dealloc_closure);
+  #my $opaque_closure = $ML::TensorFlow::CAPI::FFI->cast(tensor_dealloc_closure_t => 'opaque', $ffi_closure);
+
   sub new {
     my ($class, $type, $dims, $datablob) = @_;
 
@@ -167,7 +170,7 @@ package ML::TensorFlow::Tensor {
       $type,
       $dims, scalar(@$dims),
       $datablob, bytes::length($datablob),
-      $dealloc_closure, 0 # as in: NULL 
+      $ffi_closure, 0 # as in: NULL
     );
 
     my $self = bless(\$s => $class);
@@ -199,10 +202,13 @@ package ML::TensorFlow::Tensor {
     return ML::TensorFlow::CAPI::TF_TensorByteSize($$self);
   }
 
-  # WARNING: No encapsulation
   sub get_tensordata {
     my ($self) = @_;
-    return ML::TensorFlow::CAPI::TF_TensorData($$self);
+    my $bytes = ML::TensorFlow::CAPI::TF_TensorByteSize($$self);
+    return ML::TensorFlow::CAPI::_make_perl_string_copy_from_opaque_string(
+      ML::TensorFlow::CAPI::TF_TensorData($$self),
+      $bytes
+    );
   }
 }; # end Tensor
 
