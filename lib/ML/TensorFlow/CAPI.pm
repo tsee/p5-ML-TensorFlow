@@ -168,6 +168,7 @@ $FFI->attach( 'TF_DeleteGraph',          [$TF_Graph_Ptr] => 'void');
 
 
 # Session API
+# FIXME this seems to leak deep inside tensorflow.
 $FFI->attach( 'TF_NewSession',          [$TF_Graph_Ptr, $TF_SessionOptions_Ptr, $TF_Status_Ptr] => $TF_Session_Ptr );
 $FFI->attach( 'TF_CloseSession',        [$TF_Session_Ptr, $TF_Status_Ptr] => 'void' );
 $FFI->attach( 'TF_DeleteSession',       [$TF_Session_Ptr, $TF_Status_Ptr] => 'void' );
