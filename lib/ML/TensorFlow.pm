@@ -26,9 +26,10 @@ use constant {
   Status         => "ML::TensorFlow::Status",
   Session        => "ML::TensorFlow::Session",
   SessionOptions => "ML::TensorFlow::SessionOptions",
-  Tensor         => "ML::Tensor::Tensor",
+  Tensor         => "ML::TensorFlow::Tensor",
+  Buffer         => "ML::TensorFlow::Buffer",
 };
-push @EXPORT_OK, qw(Status SessionOptions Session Tensor);
+push @EXPORT_OK, qw(Status SessionOptions Session Tensor Buffer);
 
 package ML::TensorFlow::Status {
   sub new {
