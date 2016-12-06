@@ -4,15 +4,16 @@ use warnings;
 
 require Exporter;
 
-our $VERSION = '0.01';
+our $VERSION;
+BEGIN { $VERSION = '0.01'; }
+
+use XSLoader;
+BEGIN { XSLoader::load('ML::TensorFlow', $VERSION); }
 
 use Scalar::Util ();
 require bytes;
 
 use ML::TensorFlow::CAPI qw(:all);
-
-#require XSLoader;
-#XSLoader::load('ML::TensorFlow', $VERSION);
 
 use Exporter 'import';
 our @EXPORT_OK;
