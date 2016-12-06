@@ -127,7 +127,7 @@ $FFI->attach(
   [
     $TF_DataType_Enum_t,
     'sint64[]', 'int', # dim sizes, ndims
-    'opaque', 'size_t', # data, data len in bytes
+    'string', 'size_t', # data, data len in bytes
     'tensor_dealloc_closure_t', 'opaque', # deallocator callback, deallocator arg
   ],
   $TF_Tensor_Ptr

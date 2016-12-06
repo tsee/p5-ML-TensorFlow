@@ -161,9 +161,10 @@ package ML::TensorFlow::Tensor {
 
   my $dealloc_closure = sub {}; # memory managed by Perl (?)
   sub new {
-    my ($class, $dims, $datablob) = @_;
+    my ($class, $type, $dims, $datablob) = @_;
 
     my $s = ML::TensorFlow::CAPI::TF_NewTensor(
+      $type,
       $dims, scalar(@$dims),
       $datablob, bytes::length($datablob),
       $dealloc_closure, 0 # as in: NULL 
