@@ -75,13 +75,14 @@ $FFI->lib(FFI::CheckLib::find_lib_or_exit(lib => 'tensorflow'));
 
 
 # just some named types for the FFI to make it more readable
-my $TF_Status_Ptr         = "opaque";
-my $TF_Tensor_Ptr         = "opaque";
-my $TF_SessionOptions_Ptr = "opaque";
-my $TF_Session_Ptr        = "opaque";
-my $TF_Buffer_Ptr         = "opaque";
-my $TF_Graph_Ptr          = "opaque";
-my $TF_Library_Ptr        = "opaque";
+my $TF_Status_Ptr                 = "opaque";
+my $TF_Tensor_Ptr                 = "opaque";
+my $TF_SessionOptions_Ptr         = "opaque";
+my $TF_Session_Ptr                = "opaque";
+my $TF_Buffer_Ptr                 = "opaque";
+my $TF_Graph_Ptr                  = "opaque";
+my $TF_Library_Ptr                = "opaque";
+my $TF_ImportGraphDefOptions_Ptr  = "opaque";
 
 my $TF_Code_Enum_t     = "int";
 my $TF_DataType_Enum_t = "int";
@@ -163,6 +164,17 @@ $FFI->attach( 'TF_DeleteSessionOptions', [$TF_SessionOptions_Ptr] => 'void' );
 # Graph API
 $FFI->attach( 'TF_NewGraph',             [] => $TF_Graph_Ptr);
 $FFI->attach( 'TF_DeleteGraph',          [$TF_Graph_Ptr] => 'void');
+
+# ImportGraphDef(Options) API
+$FFI->attach( 'TF_NewImportGraphDefOptions', [] => $TF_ImportGraphDefOptions_Ptr );
+$FFI->attach( 'TF_DeleteImportGraphDefOptions', [$TF_ImportGraphDefOptions_Ptr] => 'void' );
+$FFI->attach( 'TF_ImportGraphDefOptionsSetPrefix', [$TF_ImportGraphDefOptions_Ptr, 'string'] => 'void' );
+$FFI->attach( 'TF_GraphImportGraphDef',
+              [ $TF_Graph_Ptr,
+                $TF_Buffer_Ptr,
+                $TF_ImportGraphDefOptions_Ptr,
+                $TF_Status_Ptr ]
+              => 'void' );
 
 # TODO the whole graph/operation shebang
 
