@@ -103,11 +103,50 @@ package ML::TensorFlow::SessionOptions {
 }; # end SessionOptions
 
 
+# internal to ::Graph for now
+package ML::TensorFlow::_ImportGraphDefOptions {
+  sub new {
+    my ($class, $opt) = @_;
+    $opt ||= {};
+    my $options = ML::TensorFlow::CAPI::TF_NewImportGraphDefOptions();
+    if (defined $opt->{prefix}) {
+      ML::TensorFlow::CAPI::TF_ImportGraphDefOptionsSetPrefix($options, $opt->{prefix});
+    }
+    return bless(\$options => $class);
+  }
+
+  sub DESTROY {
+    my ($self) = @_;
+    ML::TensorFlow::TF_DeleteImportGraphDefOptions($$self);
+  }
+} # end ::_ImportGraphDefOptions
+
 package ML::TensorFlow::Graph {
   sub new {
     my ($class) = @_;
     my $g = ML::TensorFlow::CAPI::TF_NewGraph();
     return bless(\$g => $class);
+  }
+
+  sub new_from_graph_def {
+    my ($class, $buffer, $opt) = @_;
+
+    my $graph = ML::TensorFlow::Graph->new;
+    my $import_opt = ML::TensorFlow::_ImportGraphDefOptions->new($opt);
+    my $status = ML::TensorFlow::Status->new();
+
+    ML::TensorFlow::CAPI::TF_GraphImportGraphDef(
+      $$graph,
+      $$buffer,
+      $$import_opt,
+      $$status
+    );
+
+    if (not $status->is_ok) {
+      die("Failed to create new TF graph from graphdef: " . $status->get_message);
+    }
+
+    return $graph;
   }
 
   sub DESTROY {
