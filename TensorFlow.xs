@@ -30,6 +30,9 @@ extern TF_Buffer* TF_NewBuffer();
 
 extern void TF_DeleteBuffer(TF_Buffer*);
 
+/* END silly copy of partial c_api.h */
+
+
 void safefree_deallocator(void *data, size_t length)
 {
   Safefree(data);
