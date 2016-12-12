@@ -30,6 +30,11 @@ extern TF_Buffer* TF_NewBuffer();
 
 extern void TF_DeleteBuffer(TF_Buffer*);
 
+void safefree_deallocator(void *data, size_t length)
+{
+  Safefree(data);
+}
+
 /* end c_api.h portion */
 
 MODULE = ML::TensorFlow		PACKAGE = ML::TensorFlow::CAPI
@@ -101,8 +106,13 @@ set_data(self, data)
     STRLEN len;
     const char *str;
   CODE:
+    self->data_deallocator((void *)self->data, self->length);
+    self->data_deallocator = &safefree_deallocator;
+
     str = SvPVbyte(data, len);
     self->length = (size_t)len;
-    self->data = (const void *)str;
+
+    Newx(self->data, len, char);
+    Copy(str, self->data, len, char);
 
 
