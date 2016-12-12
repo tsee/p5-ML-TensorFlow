@@ -61,11 +61,11 @@ _get_struct_size()
 TF_Buffer*
 new(CLASS, ...)
     char *CLASS
-  PPCODE:
+  CODE:
     if (items == 1) {
       RETVAL = TF_NewBuffer();
     }
-    else if (items == 3) {
+    else if (items == 2) {
       STRLEN len;
       const char *str = SvPVbyte(ST(1), len);
       RETVAL = TF_NewBufferFromString((const void *)str, (size_t)len);
@@ -73,6 +73,7 @@ new(CLASS, ...)
     else {
       croak("Invalid number of arguments to buffer constructor");
     }
+  OUTPUT: RETVAL
 
 void
 DESTROY(self)
@@ -96,9 +97,11 @@ get_data_view(self)
     RETVAL = newSV(0);
     /* read-only view - user beware of the memory management consequences */
     SvUPGRADE(RETVAL, SVt_PV);
-    SvPVX(RETVAL) = (char *)self->data;
+    SvPOK_on(RETVAL);
+    SvPV_set(RETVAL, (char *)self->data);
     SvCUR_set(RETVAL, (STRLEN)self->length);
     SvLEN_set(RETVAL, 0);
+    SvREADONLY_on(RETVAL);
   OUTPUT: RETVAL
 
 void
